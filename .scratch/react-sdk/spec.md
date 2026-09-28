@@ -14,7 +14,7 @@ The Return page is where Merchants get it wrong. Transxact appends `session_id` 
 
 ## Solution
 
-`@transxact/react`: a small, hand-written, client-only React DOM package (docs/adr/0001) with zero runtime dependencies. It covers the two browser legs of the hosted checkout, and every call goes through the Merchant backend:
+`@transxact/react`: a small, hand-written, client-only React DOM package (ADR-0001) with zero runtime dependencies. It covers the two browser legs of paying through a Checkout Session's hosted URL, and every call goes through the Merchant backend:
 
 1. **Starting a Checkout attempt.**
    - A headless hook, plus an unstyled button built on it, asks the Merchant backend to create a Checkout Session and sends the Customer to its hosted URL.
@@ -79,11 +79,11 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 49. As a Merchant, I want a README quickstart that includes a working Merchant backend route using `@transxact/node` as it is today, so that I can finish a full integration in one sitting.
 50. As a Merchant, I want the README to explain that the Return page is only a hint and that webhooks or a server-side lookup decide fulfilment, so that I don't ship goods on a redirect.
 51. As a Merchant testing in Test mode, I want the README to show how to drive a Checkout Session to a final status, so that I can try my Return page end to end.
-52. As a Customer, I want pressing pay to take me straight to the hosted checkout, so that I can pay with my Wallet without delay.
+52. As a Customer, I want pressing pay to take me straight to the Checkout Session's hosted URL, so that I can pay with my Wallet without delay.
 53. As a Customer, I want pressing pay twice to not charge me twice, so that I can trust the checkout.
 54. As a Customer, I want the Return page to tell me the real Checkout Session status, even if the payment takes a few seconds to confirm, so that I know whether I paid.
 55. As a Customer who cancelled or whose payment failed, I want the Return page to say so instead of saying "thank you", so that I can try again.
-56. As a Customer who pressed Back on the hosted checkout, I want the pay button to work again, so that I'm not stuck.
+56. As a Customer who pressed Back on the Checkout Session's hosted URL, I want the pay button to work again, so that I'm not stuck.
 57. As a maintainer, I want the package hand-written with its own minimal types, so that there's no Fern pipeline to run and no coupling to `@transxact/node` releases.
 58. As a maintainer, I want changesets-based versioning and CI that runs lint, typecheck, tests and build, then publishes to npm with provenance, so that releases are routine and verifiable.
 59. As a maintainer, I want the domain vocabulary (Checkout Session status, Merchant backend, Checkout attempt, Return page) used consistently in code, docs and errors, so that the SDK reads like the platform.
@@ -131,7 +131,7 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 **Documentation**
 - README quickstart: provider + button, the Return page, and a Next.js App Router Merchant backend built on `@transxact/node` 0.2.x as it is today. That means passing `Authorization: Bearer sk_…` by hand, a required `environment`, and `postV1CheckoutSessions` / `getV1CheckoutSessionsId`, with the Idempotency-Key forwarded.
 - The README also covers the URL shorthand contract and why the Return page is only a hint.
-- The architectural decision is in docs/adr/0001. The vocabulary is in CONTEXT.md.
+- The architectural decision is recorded as ADR-0001. The vocabulary is the repo's domain glossary.
 
 ## Testing Decisions
 
@@ -174,5 +174,5 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 ## Further Notes
 
 - Test mode only is live today (Live mode is gated per Provider), so end-to-end checks use an `sk_test_` key on a Merchant backend. The Test mode transition endpoint can drive a Checkout Session to a final status without a real Wallet.
-- If the platform later adds a client-safe key or an embeddable checkout, those arrive as additions next to the current API; nothing in v1 has to break (docs/adr/0001).
+- If the platform later adds a client-safe key or an embeddable checkout, those arrive as additions next to the current API; nothing in v1 has to break (ADR-0001).
 - `@transxact/node` 0.2.33, the latest at the time of writing, still has the gaps listed under Out of Scope, so the README's Merchant backend example must match that version and be revised when the gaps close.

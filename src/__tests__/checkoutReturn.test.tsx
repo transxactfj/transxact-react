@@ -246,6 +246,32 @@ describe("useCheckoutReturn", () => {
         expect(result.current.state).toBe("settled");
     });
 
+    it("refresh aborts the in-flight lookup and ignores its late response", async () => {
+        const answers: Array<(value: CheckoutSessionLike) => void> = [];
+        const signals: AbortSignal[] = [];
+        const retrieveSession = vi.fn(
+            (_id: string, { signal }: { signal: AbortSignal }) =>
+                new Promise<CheckoutSessionLike>((resolve) => {
+                    answers.push(resolve);
+                    signals.push(signal);
+                }),
+        );
+        const { result } = renderHook(() => useCheckoutReturn({ retrieveSession }));
+        await flush();
+
+        act(() => result.current.refresh());
+        await flush();
+        expect(signals[0]?.aborted).toBe(true);
+
+        await act(async () => answers[0]?.(session("failed")));
+        expect(result.current.state).toBe("loading");
+        expect(result.current.session).toBeUndefined();
+
+        await act(async () => answers[1]?.(session("succeeded")));
+        expect(result.current.state).toBe("settled");
+        expect(result.current.session?.status).toBe("succeeded");
+    });
+
     it("aborts the in-flight request and stops polling on unmount", async () => {
         const retrieveSession = retrieveSequence("pending");
         const { unmount } = renderHook(() => useCheckoutReturn({ retrieveSession }));

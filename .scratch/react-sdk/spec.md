@@ -102,7 +102,7 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 **Checkout attempt behaviour (`useCheckout`)**
 - State machine: `idle → creating → redirecting`. Any failure while creating goes to `error`. `reset` returns to `idle`.
 - `start` does nothing while `creating` or `redirecting`.
-- The Idempotency-Key is made lazily on the first `start` of an attempt. It survives `error` → `start` retries and is cleared by `reset`, by unmount, and by a page restored from the back/forward cache.
+- The Idempotency-Key is made lazily on the first `start` of an attempt. It survives `error` → `start` retries and is cleared by `reset`, by unmount, and by a page restored from the back/forward cache. With the URL shorthand, a retry whose create URL or payload differs from the attempt's is a new Checkout attempt and gets a new key (the SDK can't see what a Merchant-supplied function sends, so there the Merchant calls `reset`).
 - Keys use `crypto.randomUUID` when it's available, falling back to a v4 UUID built from `crypto.getRandomValues`.
 - `hostedUrl` is validated before navigation. It must parse as a URL with `https:`; `http:` is allowed only for localhost/loopback hosts. Anything else is `invalid_response`.
 - The default redirect is a full-page `location.assign`; a `redirect` option overrides it. After redirecting, the hook stays in `redirecting`.

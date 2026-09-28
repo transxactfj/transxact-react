@@ -9,6 +9,7 @@
 - [x] `createSession` receives `{ idempotencyKey, signal }`. The key is a UUID made lazily on the first `start` of a Checkout attempt: `crypto.randomUUID` when available, otherwise a v4 UUID built from `crypto.getRandomValues`.
 - [x] After an error, calling `start` again passes the **same** Idempotency-Key.
 - [x] After `reset`, or after the component remounts, the next `start` passes a **new** Idempotency-Key.
+- [x] With the URL shorthand (ticket 03), a retry whose create URL or payload has changed since the failed attempt is a new Checkout attempt and passes a **new** Idempotency-Key; an equal payload passed as a new object keeps the key. _(Added after code review.)_
 - [x] `start` does nothing while `state` is `creating` or `redirecting`. Two rapid clicks call the Merchant function once.
 - [x] The signal passed to `createSession` is aborted on unmount and on `reset`. An aborted attempt never updates state and never redirects.
 - [x] When the page is restored from the back/forward cache (`pageshow` with `persisted`), the hook returns to `idle` with a fresh Idempotency-Key, so the button isn't stuck in `redirecting`.

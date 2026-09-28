@@ -187,6 +187,8 @@ const { start, reset, state, error } = useCheckout({ createSessionUrl: "/api/che
 
 `<CheckoutButton>` takes the same options plus any `<button>` props and a `ref`. It is unstyled, defaults to `type="button"`, and runs your `onClick` first — call `event.preventDefault()` there (e.g. after failed validation) to stop the Checkout attempt.
 
+`<CheckoutButton>` is for redirects that leave the page. It has no `reset`, so once it has redirected it stays disabled until the page is left or restored from the back/forward cache. If your `redirect` keeps the Customer on the page (a new tab, a popup), build the button with `useCheckout` instead and call `reset()` when you're done.
+
 ### `useCheckoutReturn(options)`
 
 ```ts

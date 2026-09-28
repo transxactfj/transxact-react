@@ -147,6 +147,19 @@ describe("createSessionUrl shorthand", () => {
         expect(redirect).not.toHaveBeenCalled();
     });
 
+    it("aborts the request on unmount", async () => {
+        const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) => new Promise<Response>(() => {}));
+        vi.stubGlobal("fetch", fetchMock);
+        const { result, unmount } = renderHook(() =>
+            useCheckout({ createSessionUrl: "/api/checkout", redirect: vi.fn() }),
+        );
+
+        await act(async () => void result.current.start());
+        unmount();
+
+        expect(fetchMock.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+    });
+
     it("aborts the request on reset", async () => {
         const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) => new Promise<Response>(() => {}));
         vi.stubGlobal("fetch", fetchMock);

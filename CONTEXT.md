@@ -13,7 +13,7 @@ The Merchant's own server, which holds the secret key and is the only party that
 _Avoid_: API, server (both ambiguous with Transxact's API).
 
 **Checkout attempt**:
-One Customer intent to pay, from pressing pay until they are sent to the Checkout Session's hosted URL; retrying after an error continues the same attempt.
+One Customer intent to pay for one particular thing, from pressing pay until they are sent to the Checkout Session's hosted URL; retrying the same request after an error continues the attempt, while asking for something different (the Customer changed the cart) is a new one.
 _Avoid_: Request, try.
 
 **Return page**:

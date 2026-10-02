@@ -67,16 +67,13 @@ export function CheckoutReturn() {
 
 ### 3. Merchant backend (Next.js App Router)
 
-Written against `@transxact/node` 0.2.x as it is today: it has no API-key option yet, so the key goes in an `Authorization` header, and `environment` (the API base URL) is required.
+Written against `@transxact/node` 0.4.45 or later: the secret key goes in `token`, and `environment` is optional (it defaults to the production API).
 
 ```ts
 // app/api/checkout/route.ts — server-only; the secret key never reaches the browser.
 import { TransxactApiClient, TransxactApiError } from "@transxact/node";
 
-const transxact = new TransxactApiClient({
-    environment: "https://api.transxact.io",
-    headers: { Authorization: `Bearer ${process.env.TRANSXACT_SECRET_KEY}` },
-});
+const transxact = new TransxactApiClient({ token: process.env.TRANSXACT_SECRET_KEY! });
 
 // Create: the browser sends what is being bought; the price is looked up here.
 export async function POST(request: Request) {
@@ -84,8 +81,8 @@ export async function POST(request: Request) {
     const order = await findOrder(orderId); // your own lookup
     if (!order) return Response.json({ error: "unknown_order" }, { status: 404 });
 
-    const session = await transxact.postV1CheckoutSessions({
-        "idempotency-key": request.headers.get("Idempotency-Key") ?? crypto.randomUUID(),
+    const session = await transxact.checkoutSessions.create({
+        idempotencyKey: request.headers.get("Idempotency-Key") ?? crypto.randomUUID(),
         amount: order.totalCents,
         currency: "FJD",
         successUrl: "https://shop.example/checkout/return",
@@ -100,7 +97,7 @@ export async function GET(request: Request) {
     const id = new URL(request.url).searchParams.get("session_id");
     if (!id) return Response.json({ error: "missing_session_id" }, { status: 400 });
     try {
-        const session = await transxact.getV1CheckoutSessionsId({ id });
+        const session = await transxact.checkoutSessions.retrieve({ id });
         return Response.json({ id: session.id, status: session.status });
     } catch (error) {
         const status = error instanceof TransxactApiError ? (error.statusCode ?? 502) : 502;
@@ -146,7 +143,7 @@ export function Payments({ children }: { children: React.ReactNode }) {
 
 Transxact appends `session_id` to **both** `successUrl` and `cancelUrl`, and sends the Customer to `cancelUrl` for failed and expired Checkout Sessions too. Landing on a URL tells you nothing about the outcome, which is why `useCheckoutReturn` always asks the Merchant backend and polls while the Checkout Session is still `pending`.
 
-Even then, the Return page is only for showing the Customer something. **Fulfil orders from Transxact's webhooks (or a server-side lookup), never from the redirect** — a Customer may close the tab before the Return page loads.
+Even then, the Return page is only for showing the Customer something. **Fulfil orders from Transxact's webhooks (or a server-side lookup), never from the redirect** — a Customer may close the tab before the Return page loads. On your Merchant backend, check each webhook's signature with `verifyWebhookSignature` from `@transxact/node/webhooks` before trusting it ([webhook verification guide](https://docs.transxact.io)).
 
 ## API
 
@@ -182,7 +179,7 @@ const { start, reset, state, error } = useCheckout({ createSessionUrl: "/api/che
 - `start()` begins a **Checkout attempt**, or retries the current one after an error. It's ignored while one is under way.
 - `reset()` abandons the Checkout attempt (aborting any request) and returns to `idle`.
 - Each Checkout attempt has one Idempotency-Key: a retry after an error reuses it; `reset()`, a remount, or the Customer coming back with the browser's Back button starts a new one. With `createSessionUrl`, a changed `payload` (the Customer edited the cart after an error) also starts a new one. With your own `createSession` the SDK can't see what you send, so call `reset()` when what the Customer is buying changes.
-- A `createSession` function receives `{ idempotencyKey, signal }` — forward the key to Transxact as `idempotency-key`.
+- A `createSession` function receives `{ idempotencyKey, signal }` — forward the key to Transxact as the `Idempotency-Key` header (`idempotencyKey` in `@transxact/node`).
 - The returned `hostedUrl` must be `https:` (`http:` only on localhost), so a misconfigured Merchant backend can't redirect Customers somewhere unexpected.
 
 `<CheckoutButton>` takes the same options plus any `<button>` props and a `ref`. It is unstyled, defaults to `type="button"`, and runs your `onClick` first — call `event.preventDefault()` there (e.g. after failed validation) to stop the Checkout attempt.

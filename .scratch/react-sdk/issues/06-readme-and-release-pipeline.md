@@ -12,11 +12,11 @@
   - the function form of both handoffs;
   - a Return page component that renders from `state` and `session.status`;
   - a complete Next.js App Router Merchant backend (create and retrieve routes).
-- [x] The Merchant backend example works against `@transxact/node` 0.2.x as it is today:
-  - `Authorization: Bearer sk_…` passed by hand;
-  - `environment` given;
-  - `postV1CheckoutSessions` with the forwarded Idempotency-Key;
-  - `getV1CheckoutSessionsId`;
+- [x] The Merchant backend example works against `@transxact/node` 0.4.45 (originally written for 0.2.x):
+  - the secret key passed as `token`;
+  - `environment` left to its production default;
+  - `checkoutSessions.create` with the forwarded Idempotency-Key;
+  - `checkoutSessions.retrieve`;
   - the secret key read from a server-only environment variable.
 - [x] The README documents the URL shorthand wire contract: create request and response, retrieve request and response, and the error codes.
 - [x] The README states that the Return page is a hint: Transxact appends `session_id` to both success and cancel URLs, and fulfilment must rely on webhooks or a server-side lookup, never the redirect.

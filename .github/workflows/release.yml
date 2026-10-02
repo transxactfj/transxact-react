@@ -26,8 +26,9 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org/
 
-      # Trusted publishing needs npm 11.5 or later.
-      - run: npm install -g npm@latest
+      # Trusted publishing needs npm 11.5.1 or later. Pinned to the 11 line so a new npm major
+      # (npm 12 changed `npm pack --json`) can't break releases unannounced.
+      - run: npm install -g npm@^11.5.1
 
       - run: npm ci
 

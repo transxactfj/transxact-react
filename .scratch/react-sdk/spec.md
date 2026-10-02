@@ -129,7 +129,7 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 - Built with tsdown; lint and format with Biome; releases with changesets and GitHub Actions using npm OIDC trusted publishing with provenance.
 
 **Documentation**
-- README quickstart: provider + button, the Return page, and a Next.js App Router Merchant backend built on `@transxact/node` 0.4.37. That means the secret key in `token`, no `environment` (it defaults to production), and `checkoutSessions.create` / `checkoutSessions.retrieve`, with the Idempotency-Key forwarded as `"idempotency-key"`.
+- README quickstart: provider + button, the Return page, and a Next.js App Router Merchant backend built on `@transxact/node` 0.4.45. That means the secret key in `token`, no `environment` (it defaults to production), and `checkoutSessions.create` / `checkoutSessions.retrieve`, with the Idempotency-Key forwarded as `idempotencyKey`.
 - The README also covers the URL shorthand contract and why the Return page is only a hint.
 - The architectural decision is recorded as ADR-0001. The vocabulary is the repo's domain glossary.
 
@@ -166,7 +166,7 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 - **Styled or branded components,** CSS, and Provider logos. Also `asChild`/slot composition.
 - **Changes to any other repo:**
   - the platform (e.g. adding bearer `securitySchemes` to the OpenAPI spec, publishable keys, CORS);
-  - `@transxact/node` (exporting `verifyWebhookSignature`, making `environment` optional, grouping methods by resource, retrying network errors). The first three shipped in 0.4.37: `@transxact/node/webhooks`, a default `environment`, and `checkoutSessions.*`.
+  - `@transxact/node` (exporting `verifyWebhookSignature`, making `environment` optional, grouping methods by resource, retrying network errors). The first three shipped in 0.4.37: `@transxact/node/webhooks`, a default `environment`, and `checkoutSessions.*`. 0.4.45 renamed the create request's `"idempotency-key"` to `idempotencyKey`.
 
   These are follow-ups for their owners.
 - **Cancelling a Checkout Session from the browser.**
@@ -175,4 +175,4 @@ The Merchant connects the SDK to their backend in one of two ways. They pass the
 
 - Test mode only is live today (Live mode is gated per Provider), so end-to-end checks use an `sk_test_` key on a Merchant backend. The Test mode transition endpoint can drive a Checkout Session to a final status without a real Wallet.
 - If the platform later adds a client-safe key or an embeddable checkout, those arrive as additions next to the current API; nothing in v1 has to break (ADR-0001).
-- `@transxact/node` 0.2.33, the latest at the time of writing, still had the gaps listed under Out of Scope. 0.4.37 closed most of them and renamed the methods, so the README's Merchant backend example now targets 0.4.37.
+- `@transxact/node` 0.2.33, the latest at the time of writing, still had the gaps listed under Out of Scope. 0.4.37 closed most of them and renamed the methods, and 0.4.45 renamed the idempotency key, so the README's Merchant backend example now targets 0.4.45.

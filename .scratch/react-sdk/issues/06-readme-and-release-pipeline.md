@@ -12,7 +12,7 @@
   - the function form of both handoffs;
   - a Return page component that renders from `state` and `session.status`;
   - a complete Next.js App Router Merchant backend (create and retrieve routes).
-- [x] The Merchant backend example works against `@transxact/node` 0.4.37 (originally written for 0.2.x):
+- [x] The Merchant backend example works against `@transxact/node` 0.4.45 (originally written for 0.2.x):
   - the secret key passed as `token`;
   - `environment` left to its production default;
   - `checkoutSessions.create` with the forwarded Idempotency-Key;

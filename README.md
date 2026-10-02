@@ -67,7 +67,7 @@ export function CheckoutReturn() {
 
 ### 3. Merchant backend (Next.js App Router)
 
-Written against `@transxact/node` 0.4.37 or later: the secret key goes in `token`, and `environment` is optional (it defaults to the production API).
+Written against `@transxact/node` 0.4.45 or later: the secret key goes in `token`, and `environment` is optional (it defaults to the production API).
 
 ```ts
 // app/api/checkout/route.ts — server-only; the secret key never reaches the browser.
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
     if (!order) return Response.json({ error: "unknown_order" }, { status: 404 });
 
     const session = await transxact.checkoutSessions.create({
-        "idempotency-key": request.headers.get("Idempotency-Key") ?? crypto.randomUUID(),
+        idempotencyKey: request.headers.get("Idempotency-Key") ?? crypto.randomUUID(),
         amount: order.totalCents,
         currency: "FJD",
         successUrl: "https://shop.example/checkout/return",
@@ -179,7 +179,7 @@ const { start, reset, state, error } = useCheckout({ createSessionUrl: "/api/che
 - `start()` begins a **Checkout attempt**, or retries the current one after an error. It's ignored while one is under way.
 - `reset()` abandons the Checkout attempt (aborting any request) and returns to `idle`.
 - Each Checkout attempt has one Idempotency-Key: a retry after an error reuses it; `reset()`, a remount, or the Customer coming back with the browser's Back button starts a new one. With `createSessionUrl`, a changed `payload` (the Customer edited the cart after an error) also starts a new one. With your own `createSession` the SDK can't see what you send, so call `reset()` when what the Customer is buying changes.
-- A `createSession` function receives `{ idempotencyKey, signal }` — forward the key to Transxact as `idempotency-key`.
+- A `createSession` function receives `{ idempotencyKey, signal }` — forward the key to Transxact as the `Idempotency-Key` header (`idempotencyKey` in `@transxact/node`).
 - The returned `hostedUrl` must be `https:` (`http:` only on localhost), so a misconfigured Merchant backend can't redirect Customers somewhere unexpected.
 
 `<CheckoutButton>` takes the same options plus any `<button>` props and a `ref`. It is unstyled, defaults to `type="button"`, and runs your `onClick` first — call `event.preventDefault()` there (e.g. after failed validation) to stop the Checkout attempt.

@@ -13,7 +13,9 @@ const EXPECTED = [
     "package.json",
 ];
 
-const [pack] = JSON.parse(execSync("npm pack --dry-run --json --ignore-scripts", { encoding: "utf8" }));
+const output = JSON.parse(execSync("npm pack --dry-run --json --ignore-scripts", { encoding: "utf8" }));
+// npm 11 and earlier print an array; npm 12 prints an object keyed by package name.
+const pack = Array.isArray(output) ? output[0] : Object.values(output)[0];
 const files = pack.files.map((file) => file.path.replaceAll("\\", "/")).sort();
 const problems = [];
 

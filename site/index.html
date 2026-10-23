@@ -245,7 +245,7 @@ export function CheckoutReturn() {
 }</code></pre>
       </div>
       <div class="step">
-        <div><h3>4 · Merchant backend</h3><p>The one piece that runs on your server, not in the browser. It uses <code>@transxact/node</code> and your secret key.</p><p>It looks up the price, forwards the Idempotency-Key, and reports the status. This example uses the Next.js App Router.</p></div>
+        <div><h3>4 · Merchant backend</h3><p>The one piece that runs on your server, not in the browser. It uses <code>@transxact/node</code> and your secret key.</p><p>It looks up the price, forwards the Idempotency-Key, and reports the status. A runnable version is in the <a href="https://github.com/transxactfj/transxact-react/blob/main/example/app/api/checkout/route.ts">example app</a>. This one uses the Next.js App Router.</p></div>
 <pre><code class="language-ts">// app/api/checkout/route.ts — server-only
 import { TransxactApiClient } from "@transxact/node";
 
@@ -348,13 +348,13 @@ export async function GET(request: Request) {
   <div class="wrap">
     <div class="eyebrow">05 — Try it</div>
     <h2>Try every outcome in Test mode.</h2>
-    <p class="sub">Use an <code>sk_test_</code> key on your Merchant backend: Test mode runs simulated payments and moves no money. Drive a session to <code>succeeded</code>, <code>failed</code> or <code>cancelled</code>, then load your Return page with <code>?session_id=cs_…</code>.</p>
+    <p class="sub">Use an <code>sk_test_</code> key on your Merchant backend: Test mode runs simulated payments on a practice screen and moves no money. Run the example app, a small Next.js shop, or drive a session to <code>succeeded</code>, <code>failed</code> or <code>cancelled</code> yourself, then load your Return page with <code>?session_id=cs_…</code>.</p>
 <pre style="margin-bottom:34px"><code class="language-bash">curl -X POST https://api.transxact.io/v1/checkout-sessions/cs_…/test-transition \
   -H "Authorization: Bearer $TRANSXACT_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{"status":"succeeded","provider":"mpaisa"}'</code></pre>
     <div class="cta" style="margin-top:0">
-      <a class="btn" href="https://github.com/transxactfj/transxact-react#readme"><span>Read the guide</span></a>
+      <a class="btn" href="https://github.com/transxactfj/transxact-react/tree/main/example"><span>Open the example</span></a>
       <a class="btn" style="background:var(--stone-950);color:var(--lime)" href="https://www.npmjs.com/package/@transxact/react"><span>npm package</span></a>
     </div>
   </div>

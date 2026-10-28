@@ -304,7 +304,9 @@ export async function GET(request: Request) {
           <tr><td><code>createSession</code> / <code>createSessionUrl</code></td><td>Your function, or a URL, for creating a Checkout Session</td></tr>
           <tr><td><code>retrieveSession</code> / <code>retrieveSessionUrl</code></td><td>Your function, or a URL, for looking one up</td></tr>
           <tr><td><code>fetchInit</code></td><td>Extra options for the URL shorthands, e.g. credentials or a CSRF header</td></tr>
-          <tr><td><code>polling</code></td><td>Return page polling defaults: <code>intervalMs</code>, <code>maxIntervalMs</code>, <code>timeoutMs</code></td></tr>
+          <tr><td><code>polling</code></td><td>Return page polling defaults: <code>intervalMs</code>, <code>maxIntervalMs</code>, <code>timeoutMs</code>, <code>retries</code></td></tr>
+          <tr><td><code>requestTimeoutMs</code></td><td>How long a URL-shorthand request may take before it fails with <code>timeout</code> (default 30 s)</td></tr>
+          <tr><td><code>allowedHostedUrlHosts</code></td><td>Exact hostnames a <code>hostedUrl</code> may have; by default any https host is accepted</td></tr>
         </table>
       </div>
       <div class="card">
@@ -335,8 +337,9 @@ export async function GET(request: Request) {
         <table>
           <tr><th>code</th><th>When</th></tr>
           <tr><td><code>config_missing</code></td><td>Neither props nor provider say how to reach your backend</td></tr>
-          <tr><td><code>http_error</code></td><td>A URL shorthand got a non-2xx response; <code>error.status</code> and <code>error.body</code> are set</td></tr>
-          <tr><td><code>invalid_response</code></td><td>The response isn’t JSON, or has no valid <code>hostedUrl</code> or status</td></tr>
+          <tr><td><code>http_error</code></td><td>A URL shorthand got a non-2xx response; <code>error.status</code> and <code>error.body</code> are set, plus <code>error.apiCode</code> when the body is <code>{ error: { code } }</code></td></tr>
+          <tr><td><code>timeout</code></td><td>A URL-shorthand request got no answer within <code>requestTimeoutMs</code></td></tr>
+          <tr><td><code>invalid_response</code></td><td>The response isn’t JSON, or has no valid <code>hostedUrl</code> or status, or is a different Checkout Session than the one asked for</td></tr>
         </table>
       </div>
     </div>

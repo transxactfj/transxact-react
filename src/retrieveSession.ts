@@ -2,7 +2,10 @@ import { type FetchInit, requestJson } from "./http";
 import type { TransxactConfig } from "./TransxactProvider";
 import type { CheckoutSessionLike, RetrieveSession } from "./types";
 
-/** A URL to GET a Checkout Session from: a fixed URL (the SDK adds `session_id`), or one built from the id. */
+/**
+ * A URL to GET a Checkout Session from: a fixed URL (the SDK adds `session_id`), or one built from the id.
+ * A function receives the raw id, so it must encode it (`encodeURIComponent`) when putting it in a path.
+ */
 export type RetrieveSessionUrl = string | ((sessionId: string) => string);
 
 export interface RetrieveSessionSettings<S extends CheckoutSessionLike = CheckoutSessionLike> {
@@ -20,10 +23,16 @@ function urlFor(retrieveSessionUrl: RetrieveSessionUrl, sessionId: string): stri
 function fromUrl<S extends CheckoutSessionLike>(
     retrieveSessionUrl: RetrieveSessionUrl,
     fetchInit: FetchInit | undefined,
+    timeoutMs: number | undefined,
 ): RetrieveSession<S> {
     // The response is validated as a Checkout Session by the caller, whichever way it was retrieved.
     return async (sessionId, { signal }) =>
-        (await requestJson(urlFor(retrieveSessionUrl, sessionId), { method: "GET", fetchInit, signal })) as S;
+        (await requestJson(urlFor(retrieveSessionUrl, sessionId), {
+            method: "GET",
+            fetchInit,
+            timeoutMs,
+            signal,
+        })) as S;
 }
 
 /**
@@ -34,9 +43,11 @@ export function resolveRetrieveSession<S extends CheckoutSessionLike>(
     config: TransxactConfig,
 ): RetrieveSession<S> | undefined {
     if (props.retrieveSession) return props.retrieveSession;
-    if (props.retrieveSessionUrl) return fromUrl(props.retrieveSessionUrl, config.fetchInit);
+    if (props.retrieveSessionUrl) return fromUrl(props.retrieveSessionUrl, config.fetchInit, config.requestTimeoutMs);
     // The provider serves every Return page, so it can only promise the minimal shape.
     if (config.retrieveSession) return config.retrieveSession as RetrieveSession<S>;
-    if (config.retrieveSessionUrl) return fromUrl(config.retrieveSessionUrl, config.fetchInit);
+    if (config.retrieveSessionUrl) {
+        return fromUrl(config.retrieveSessionUrl, config.fetchInit, config.requestTimeoutMs);
+    }
     return undefined;
 }

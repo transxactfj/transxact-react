@@ -158,7 +158,9 @@ Optional defaults for everything beneath it. Props on a hook or component always
 | `retrieveSession` | `(sessionId, { signal }) => Promise<Session>` | Your own function to look up a Checkout Session |
 | `retrieveSessionUrl` | `string \| (sessionId) => string` | URL shorthand for looking up |
 | `fetchInit` | `RequestInit` (no body/method/signal) | Extra options for the URL shorthands, e.g. `{ credentials: "include", headers: { "x-csrf-token": token } }` |
-| `polling` | `{ intervalMs?, maxIntervalMs?, timeoutMs? }` | Return page polling defaults |
+| `polling` | `{ intervalMs?, maxIntervalMs?, timeoutMs?, retries? }` | Return page polling defaults |
+| `requestTimeoutMs` | `number` (default 30000) | How long a URL-shorthand request may take before it fails with `timeout` |
+| `allowedHostedUrlHosts` | `string[]` | Exact hostnames a `hostedUrl` may have, e.g. `["transxact.io"]`. By default any https host is accepted |
 
 **Precedence:** props beat the provider; at the same level a function beats a URL (so a URL passed as a prop beats a function on the provider).
 
@@ -196,7 +198,7 @@ const { state, session, error, refresh } = useCheckoutReturn<MySession>({ retrie
 |---|---|
 | `retrieveSession` / `retrieveSessionUrl` | How to reach the Merchant backend (or set on the provider) |
 | `sessionId` | Use this instead of the `session_id` query parameter (e.g. from your router) |
-| `polling` | `{ intervalMs = 1500, maxIntervalMs = 8000, timeoutMs = 60000 }`; overrides the provider field by field |
+| `polling` | `{ intervalMs = 1500, maxIntervalMs = 8000, timeoutMs = 60000, retries = 3 }`; overrides the provider field by field |
 
 - `state`: `idle` (server render and first client render) → `missing` (no session id) or `loading` → `settled`, or `polling` → `settled` / `timed_out`; `error` at any point.
 - While the Checkout Session is `pending` the hook polls with exponential backoff (1.5 s, 3 s, 6 s, then every 8 s) and gives up with `timed_out` 60 s after the first lookup.
@@ -210,8 +212,9 @@ Errors raised by the SDK are `TransxactReactError` with a `code`:
 | `code` | When |
 |---|---|
 | `config_missing` | Neither props nor provider say how to reach the Merchant backend |
-| `http_error` | A URL shorthand got a non-2xx response; `error.status` and `error.body` (parsed JSON, or raw text) are set |
-| `invalid_response` | The response isn't JSON, has no valid `hostedUrl`, or has no valid Checkout Session status |
+| `http_error` | A URL shorthand got a non-2xx response; `error.status` and `error.body` (parsed JSON, or raw text) are set, plus `error.apiCode` when the body is `{ error: { code } }`. `body` is the Merchant backend's own output: don't show it to the Customer |
+| `timeout` | A URL-shorthand request got no answer within `requestTimeoutMs` |
+| `invalid_response` | The response isn't JSON, has no valid `hostedUrl`, or has no valid Checkout Session status, or is a different Checkout Session than the one asked for |
 
 Errors thrown by your own `createSession` / `retrieveSession` functions are passed through unchanged.
 

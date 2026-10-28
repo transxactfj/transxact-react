@@ -90,7 +90,7 @@ describe("useCheckoutReturn", () => {
 
     it("uses an explicit sessionId instead of the URL", async () => {
         landOnReturnPage("");
-        const retrieveSession = retrieveSequence("failed");
+        const retrieveSession = vi.fn(async () => ({ id: "cs_explicit", status: "failed" as const }));
         const { result } = renderHook(() => useCheckoutReturn({ retrieveSession, sessionId: "cs_explicit" }));
         await flush();
 

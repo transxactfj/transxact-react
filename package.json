@@ -29,6 +29,13 @@
         "type": "git",
         "url": "git+https://github.com/transxactfj/transxact-react.git"
     },
+    "bugs": {
+        "url": "https://github.com/transxactfj/transxact-react/issues"
+    },
+    "homepage": "https://github.com/transxactfj/transxact-react#readme",
+    "engines": {
+        "node": ">=18"
+    },
     "scripts": {
         "build": "tsdown",
         "typecheck": "tsc --noEmit",

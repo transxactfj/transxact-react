@@ -40,4 +40,6 @@ export interface PollingOptions {
     maxIntervalMs?: number;
     /** Give up (`timed_out`) this long after the first lookup. Default 60000 ms. */
     timeoutMs?: number;
+    /** Consecutive transient failures (timeout, network error, HTTP 5xx or 429) tolerated before `error`. Default 3. */
+    retries?: number;
 }

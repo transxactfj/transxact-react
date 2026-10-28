@@ -15,6 +15,13 @@ export interface TransxactConfig {
     retrieveSessionUrl?: RetrieveSessionUrl;
     /** Extra fetch options (headers, credentials) for requests the URL shorthands send. */
     fetchInit?: FetchInit;
+    /** How long a request the URL shorthands send may take before it fails with `timeout`. Default 30000 ms. */
+    requestTimeoutMs?: number;
+    /**
+     * Hostnames the Customer may be sent to (exact match, e.g. `["transxact.io"]`). By default any https
+     * host is accepted; set this to refuse a `hostedUrl` the Merchant backend wasn't meant to return.
+     */
+    allowedHostedUrlHosts?: readonly string[];
     /** Default polling for every Return page; per-hook `polling` overrides it field by field. */
     polling?: PollingOptions;
 }

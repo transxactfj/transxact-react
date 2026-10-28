@@ -23,10 +23,31 @@ export interface UseCheckoutReturnResult<S extends CheckoutSessionLike = Checkou
     refresh: () => void;
 }
 
-const DEFAULT_POLLING: Required<PollingOptions> = { intervalMs: 1500, maxIntervalMs: 8000, timeoutMs: 60_000 };
+const DEFAULT_POLLING: Required<PollingOptions> = {
+    intervalMs: 1500,
+    maxIntervalMs: 8000,
+    timeoutMs: 60_000,
+    retries: 3,
+};
+
+/** Worth another lookup: the Merchant backend or the network hiccuped. A 401, 404 or bad payload won't heal. */
+function isTransient(error: unknown): boolean {
+    if (error instanceof TransxactReactError) {
+        if (error.code === "timeout") return true;
+        return error.code === "http_error" && (error.status === 429 || (error.status ?? 0) >= 500);
+    }
+    return error instanceof TypeError; // fetch rejects with a TypeError on a network failure.
+}
 const STATUSES: ReadonlySet<string> = new Set<CheckoutSessionStatus>(["pending", "succeeded", "failed", "cancelled"]);
 
-function validateSession<S extends CheckoutSessionLike>(value: unknown): S {
+function validateSession<S extends CheckoutSessionLike>(value: unknown, sessionId: string): S {
+    const id = typeof value === "object" && value !== null ? (value as { id?: unknown }).id : undefined;
+    if (id !== undefined && id !== sessionId) {
+        throw new TransxactReactError(
+            "invalid_response",
+            "The Merchant backend returned a different Checkout Session than the one asked for.",
+        );
+    }
     const status = typeof value === "object" && value !== null ? (value as { status?: unknown }).status : undefined;
     if (typeof status !== "string" || !STATUSES.has(status)) {
         throw new TransxactReactError(
@@ -100,13 +121,14 @@ export function useCheckoutReturn<S extends CheckoutSessionLike = CheckoutSessio
 
         const lookup = async () => {
             const retrieveSession = resolveRetrieveSession(optionsRef.current, configRef.current);
-            const { intervalMs, maxIntervalMs, timeoutMs } = mergePolling(
+            const { intervalMs, maxIntervalMs, timeoutMs, retries } = mergePolling(
                 configRef.current.polling,
                 optionsRef.current.polling,
             );
             setState("loading");
             const startedAt = Date.now();
             let delay = intervalMs;
+            let failures = 0;
             try {
                 if (!retrieveSession) {
                     throw new TransxactReactError(
@@ -115,7 +137,19 @@ export function useCheckoutReturn<S extends CheckoutSessionLike = CheckoutSessio
                     );
                 }
                 for (;;) {
-                    const retrieved = validateSession<S>(await retrieveSession(sessionId, { signal }));
+                    let retrieved: S;
+                    try {
+                        retrieved = validateSession<S>(await retrieveSession(sessionId, { signal }), sessionId);
+                    } catch (failure) {
+                        if (signal.aborted) return;
+                        const remainingAfterFailure = timeoutMs - (Date.now() - startedAt);
+                        if (!isTransient(failure) || ++failures > retries || remainingAfterFailure <= 0) throw failure;
+                        await wait(Math.min(delay, remainingAfterFailure), signal);
+                        if (signal.aborted) return;
+                        delay = Math.min(delay * 2, maxIntervalMs);
+                        continue;
+                    }
+                    failures = 0;
                     if (signal.aborted) return;
                     setSession(retrieved);
                     if (retrieved.status !== "pending") {

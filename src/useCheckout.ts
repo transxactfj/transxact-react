@@ -105,7 +105,7 @@ export function useCheckout(options: UseCheckoutOptions = {}): UseCheckoutResult
             }
             const created = await createSession({ idempotencyKey, signal: controller.signal });
             if (controller.signal.aborted) return;
-            const hostedUrl = validateHostedUrl(created?.hostedUrl);
+            const hostedUrl = validateHostedUrl(created?.hostedUrl, configRef.current.allowedHostedUrlHosts);
             setState("redirecting");
             redirect(hostedUrl);
         } catch (caught) {

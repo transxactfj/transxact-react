@@ -9,11 +9,17 @@ export interface CreateSessionSettings {
     payload?: unknown;
 }
 
-function fromUrl(url: string, payload: unknown, fetchInit: FetchInit | undefined): CreateSession {
+function fromUrl(
+    url: string,
+    payload: unknown,
+    fetchInit: FetchInit | undefined,
+    timeoutMs: number | undefined,
+): CreateSession {
     return async ({ idempotencyKey, signal }) => {
         const body = await requestJson(url, {
             method: "POST",
             fetchInit,
+            timeoutMs,
             headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
             body: payload ?? {},
             signal,
@@ -28,8 +34,12 @@ function fromUrl(url: string, payload: unknown, fetchInit: FetchInit | undefined
  */
 export function resolveCreateSession(props: CreateSessionSettings, config: TransxactConfig): CreateSession | undefined {
     if (props.createSession) return props.createSession;
-    if (props.createSessionUrl) return fromUrl(props.createSessionUrl, props.payload, config.fetchInit);
+    if (props.createSessionUrl) {
+        return fromUrl(props.createSessionUrl, props.payload, config.fetchInit, config.requestTimeoutMs);
+    }
     if (config.createSession) return config.createSession;
-    if (config.createSessionUrl) return fromUrl(config.createSessionUrl, props.payload, config.fetchInit);
+    if (config.createSessionUrl) {
+        return fromUrl(config.createSessionUrl, props.payload, config.fetchInit, config.requestTimeoutMs);
+    }
     return undefined;
 }
